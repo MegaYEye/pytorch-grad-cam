@@ -101,7 +101,7 @@ class GradCam:
 
 		self.model.features.zero_grad()
 		self.model.classifier.zero_grad()
-		one_hot.backward(retain_variables=True)
+		one_hot.backward(retain_graph=True)
 
 		grads_val = self.extractor.get_gradients()[-1].cpu().data.numpy()
 
@@ -173,7 +173,7 @@ class GuidedBackpropReLUModel:
 
 		# self.model.features.zero_grad()
 		# self.model.classifier.zero_grad()
-		one_hot.backward(retain_variables=True)
+		one_hot.backward(retain_graph=True)
 
 		output = input.grad.cpu().data.numpy()
 		output = output[0,:,:,:]
@@ -218,7 +218,7 @@ if __name__ == '__main__':
 	# If None, returns the map for the highest scoring category.
 	# Otherwise, targets the requested index.
 	target_index = None
-
+	
 	mask = grad_cam(input, target_index)
 
 	show_cam_on_image(img, mask)

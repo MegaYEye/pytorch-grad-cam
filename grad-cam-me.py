@@ -28,16 +28,27 @@ preprocessed_img = torch.from_numpy(preprocessed_img)
 # torch.Size([3, 224, 224]) -> torch.Size([1, 3, 224, 224])
 preprocessed_img.unsqueeze_(0)
 preprocessed_img.requires_grad=True
-
-model=models.vgg19(pretrained=True)
+preprocessed_img = preprocessed_img.cuda()
+model=models.vgg19(pretrained=True).cuda()
 # set on evaluate model. i.e. Dropout layer.
 model.eval()
 # module is a sequential model.
-def get_grad(x, filter_layers=[]):
+def get_grad(x, filter_layers=["35"]):
     res=[]
-    for name, module in model._modules.items():
+    for name, module in model.features._modules.items():
         x = module(x)
         if name in filter_layers:
             x.register_hook(lambda grad: res.append(grad))
-    return res
+    return res, x
+# print(model(preprocessed_img).shape)
+grad,x = get_grad(preprocessed_img)
+print(x.shape)
+output = model.classifier(x.view(x.size(0), -1))
+index = np.argmax(output.cpu().data.numpy())
+one_hot = np.zeros((1, output.size()[-1]), dtype = np.float32)
+one_hot[0][index] = 1
+one_hot = torch.Tensor(one_hot)
+print(one_hot.shape)
+# torch.Size([1, 1000])
+
          
